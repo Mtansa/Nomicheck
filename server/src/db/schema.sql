@@ -1,0 +1,47 @@
+CREATE TABLE IF NOT EXISTS users (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  position VARCHAR(120) NULL,
+  company VARCHAR(120) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_users_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shifts (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  entry_time DATETIME NOT NULL,
+  exit_time DATETIME NULL,
+  type TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  notes VARCHAR(500) NULL,
+  latitude DOUBLE NULL,
+  longitude DOUBLE NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_shifts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_shifts_user_entry (user_id, entry_time),
+  INDEX idx_shifts_user_open (user_id, exit_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_configs (
+  user_id CHAR(36) NOT NULL PRIMARY KEY,
+  hourly_rate DECIMAL(12,2) NOT NULL DEFAULT 0,
+  monthly_salary DECIMAL(12,2) NOT NULL DEFAULT 0,
+  salary_type TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  night_surcharge_percent DECIMAL(6,2) NOT NULL DEFAULT 35,
+  sunday_surcharge_percent DECIMAL(6,2) NOT NULL DEFAULT 75,
+  extra_day_surcharge_percent DECIMAL(6,2) NOT NULL DEFAULT 25,
+  extra_night_surcharge_percent DECIMAL(6,2) NOT NULL DEFAULT 50,
+  work_latitude DOUBLE NULL,
+  work_longitude DOUBLE NULL,
+  gps_radius DOUBLE NOT NULL DEFAULT 100,
+  notifications_enabled TINYINT(1) NOT NULL DEFAULT 1,
+  reminder_minutes_before SMALLINT UNSIGNED NOT NULL DEFAULT 30,
+  standard_hours_per_day TINYINT UNSIGNED NOT NULL DEFAULT 8,
+  work_days VARCHAR(32) NOT NULL DEFAULT '1,2,3,4,5',
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_configs_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
